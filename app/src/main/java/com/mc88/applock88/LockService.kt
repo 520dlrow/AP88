@@ -53,7 +53,9 @@ class LockService : Service() {
                 
                 val unlockedApp = prefs.getString("unlocked_app", null)
                 val unlockTime = prefs.getLong("unlock_time", 0)
-                val isRecentlyUnlocked = (currentApp == unlockedApp && System.currentTimeMillis() - unlockTime < 3000)
+                val timeoutMs = prefs.getLong("timeout_ms", 3000L)
+                
+                val isRecentlyUnlocked = (currentApp == unlockedApp && System.currentTimeMillis() - unlockTime < timeoutMs)
 
                 if (currentApp != null && currentApp != lastApp && lockedApps.contains(currentApp) && currentApp != packageName && !isRecentlyUnlocked) {
                     val intent = Intent(this@LockService, LockActivity::class.java)
