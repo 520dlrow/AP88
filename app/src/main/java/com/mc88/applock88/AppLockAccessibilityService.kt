@@ -9,11 +9,12 @@ class AppLockAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
-        val packageName = event.packageName?.toString() ?: return
+        val prefs = getSharedPreferences("AppLockPrefs", MODE_PRIVATE)
+        if (!prefs.getBoolean("use_accessibility", false)) return
 
+        val packageName = event.packageName?.toString() ?: return
         if (packageName == this.packageName || packageName == "com.android.systemui" || packageName == "android") return
 
-        val prefs = getSharedPreferences("AppLockPrefs", MODE_PRIVATE)
         val lockedApps = prefs.getStringSet("locked_apps", emptySet()) ?: emptySet()
 
         if (lockedApps.contains(packageName)) {
@@ -32,6 +33,5 @@ class AppLockAccessibilityService : AccessibilityService() {
         }
     }
 
-    override fun onInterrupt() {
-    }
+    override fun onInterrupt() {}
 }
