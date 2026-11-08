@@ -31,6 +31,12 @@ class LockService : Service() {
         startMonitoring()
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE).edit()
+            .putBoolean("is_protection_active", true).apply()
+        return START_STICKY
+    }
+
     private fun startForegroundService() {
         val channelId = "applock_channel"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -91,6 +97,11 @@ class LockService : Service() {
             }
         }
         return lastForegroundApp
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        RestartReceiver.scheduleRestart(applicationContext)
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
