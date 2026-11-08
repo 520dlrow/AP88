@@ -1,8 +1,10 @@
 package com.mc88.applock88
 
+import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
@@ -49,7 +51,6 @@ class MainActivity : AppCompatActivity() {
         spinnerTimeout = findViewById(R.id.spinnerTimeout)
 
         updatePinDisplay()
-        updateServiceStatus()
 
         val themeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, ThemeManager.themes)
         spinnerTheme.adapter = themeAdapter
@@ -79,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnUsage).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
 
         findViewById<Button>(R.id.btnOverlay).setOnClickListener {
@@ -100,37 +101,20 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnStart).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "Please grant Overlay permission first", Toast.LENGTH_LONG).show()
+            if (!hasUsagePermission() || !Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Please grant all permissions first", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            Toast.makeText(this, "Please enable AppLock88 in Accessibility", Toast.LENGTH_LONG).show()
+            val intent = Intent(this, LockService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+            tvStatus.text = "Protection Active"
         }
 
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            stopService(Intent(this, LockService::class.java))
+            tvStatus.text = "Protection Inactive"
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateServiceStatus()
-    }
-
-    private fun updateServiceStatus() {
-        if (isAccessibilityServiceEnabled()) {
-            tvStatus.text = "Protection Active"
-        } else {
-            tvStatus.text = "Protection Inactive (Enable in settings)"
-        }
-    }
-
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        val service = "$packageName/${AppLockAccessibilityService::class.java.canonicalName}"
-        val enabledServices = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-        return enabledServices?.contains(service) == true
     }
 
     private fun updatePinDisplay() {
@@ -144,7 +128,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSetPinDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle(getString(R.string.btn_set_pin))
+        builder.setTitle("Set PIN")
         val input = EditText(this)
         input.inputType = android.text.InputType.TYPE_CLASS_NUMBER
         input.hint = "Enter new PIN (4+ digits)"
@@ -161,5 +145,15 @@ class MainActivity : AppCompatActivity() {
         }
         builder.setNegativeButton("Cancel", null)
         builder.show()
+    }
+
+    private fun hasUsagePermission(): Boolean {
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        } else {
+            appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
     }
 }
