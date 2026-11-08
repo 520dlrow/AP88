@@ -6,11 +6,15 @@ import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.WindowManager
 import android.widget.Button
-import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class LockActivity : AppCompatActivity() {
+
+    private var enteredPin = ""
+    private var isSelfLock = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,39 +33,69 @@ class LockActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_lock)
 
-        val etPin = findViewById<EditText>(R.id.etPin)
-        val btnUnlock = findViewById<Button>(R.id.btnUnlock)
-        val btnClose = findViewById<Button>(R.id.btnClose)
-        
+        isSelfLock = intent.getBooleanExtra("is_self_lock", false)
         val lockedPkg = intent.getStringExtra("locked_package") ?: ""
+        val tvDisplay = findViewById<TextView>(R.id.tvPinDisplay)
+        val tvTitle = findViewById<TextView>(R.id.tvLockTitle)
 
-        btnUnlock.setOnClickListener {
-            btnUnlock.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            val enteredPin = etPin.text.toString().trim()
-            val savedPin = getSharedPreferences("AppLockPrefs", MODE_PRIVATE).getString("pin", "")?.trim()
+        if (isSelfLock) {
+            tvTitle.text = "AppLock88 is Protected"
+        }
 
-            if (enteredPin.isNotEmpty() && enteredPin == savedPin) {
-                getSharedPreferences("AppLockPrefs", MODE_PRIVATE).edit()
-                    .putString("unlocked_app", lockedPkg)
-                    .putLong("unlock_time", System.currentTimeMillis())
-                    .apply()
-                finish()
-            } else {
-                Toast.makeText(this, "Wrong PIN", Toast.LENGTH_SHORT).show()
-                etPin.setText("")
+        ThemeManager.applyTheme(this)
+
+        val buttons = mapOf(
+            R.id.btn0 to "0", R.id.btn1 to "1", R.id.btn2 to "2", R.id.btn3 to "3",
+            R.id.btn4 to "4", R.id.btn5 to "5", R.id.btn6 to "6", R.id.btn7 to "7",
+            R.id.btn8 to "8", R.id.btn9 to "9"
+        )
+
+        for ((id, number) in buttons) {
+            findViewById<Button>(id).setOnClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                if (enteredPin.length < 6) {
+                    enteredPin += number
+                    tvDisplay.text = enteredPin
+                }
             }
         }
 
-        btnClose.setOnClickListener {
-            btnClose.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        findViewById<Button>(R.id.btnClear).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            enteredPin = ""
+            tvDisplay.text = ""
+        }
+
+        findViewById<Button>(R.id.btnEnter).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            val savedPin = getSharedPreferences("AppLockPrefs", MODE_PRIVATE).getString("pin", "")?.trim()
+
+            if (enteredPin.isNotEmpty() && enteredPin == savedPin) {
+                if (isSelfLock) {
+                    finish()
+                } else {
+                    getSharedPreferences("AppLockPrefs", MODE_PRIVATE).edit()
+                        .putString("unlocked_app", lockedPkg)
+                        .putLong("unlock_time", System.currentTimeMillis())
+                        .apply()
+                    finish()
+                }
+            } else {
+                Toast.makeText(this, "Wrong PIN", Toast.LENGTH_SHORT).show()
+                enteredPin = ""
+                tvDisplay.text = ""
+            }
+        }
+
+        findViewById<Button>(R.id.btnClose).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             val startMain = Intent(Intent.ACTION_MAIN)
             startMain.addCategory(Intent.CATEGORY_HOME)
             startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(startMain)
-            finish()
+            finishAffinity()
         }
     }
 
-    override fun onBackPressed() {
-    }
+    override fun onBackPressed() { }
 }
