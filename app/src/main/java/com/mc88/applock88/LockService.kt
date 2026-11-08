@@ -4,11 +4,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,9 +22,11 @@ class LockService : Service() {
 
     private var job: Job? = null
     private var lastApp = ""
+    private lateinit var powerManager: PowerManager
 
     override fun onCreate() {
         super.onCreate()
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         startForegroundService()
         startMonitoring()
     }
@@ -48,12 +52,17 @@ class LockService : Service() {
             val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
             while (true) {
+                if (!powerManager.isInteractive) {
+                    delay(2000)
+                    continue
+                }
+
                 val lockedApps = prefs.getStringSet("locked_apps", emptySet()) ?: emptySet()
                 val currentApp = getForegroundApp(usageStatsManager)
                 
                 val unlockedApp = prefs.getString("unlocked_app", null)
                 val unlockTime = prefs.getLong("unlock_time", 0)
-                val timeoutMs = prefs.getLong("timeout_ms", 3000L)
+                val timeoutMs = prefs.getLong("timeout_ms", 3000L) 
                 
                 val isRecentlyUnlocked = (currentApp == unlockedApp && System.currentTimeMillis() - unlockTime < timeoutMs)
 
@@ -64,24 +73,24 @@ class LockService : Service() {
                     startActivity(intent)
                 }
                 lastApp = currentApp ?: ""
-                delay(500)
+                delay(1000)
             }
         }
     }
 
     private fun getForegroundApp(usageStatsManager: UsageStatsManager): String? {
         val currentTime = System.currentTimeMillis()
-        val stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, currentTime - 1000 * 10, currentTime)
-        if (stats == null || stats.isEmpty()) return null
-        var recentStats: android.app.usage.UsageStats? = null
-        var lastTimeUsed = 0L
-        for (usageStats in stats) {
-            if (usageStats.lastTimeUsed > lastTimeUsed) {
-                recentStats = usageStats
-                lastTimeUsed = usageStats.lastTimeUsed
+        val events = usageStatsManager.queryEvents(currentTime - 1000 * 10, currentTime)
+        val event = UsageEvents.Event()
+        var lastForegroundApp: String? = null
+        
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                lastForegroundApp = event.packageName
             }
         }
-        return recentStats?.packageName
+        return lastForegroundApp
     }
 
     override fun onDestroy() {
