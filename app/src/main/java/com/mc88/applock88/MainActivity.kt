@@ -26,10 +26,12 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
         val savedPin = prefs.getString("pin", "")
         
-        if (!savedPin.isNullOrEmpty()) {
+        if (!savedPin.isNullOrEmpty() && !intent.hasExtra("skip_lock")) {
             val intent = Intent(this, LockActivity::class.java)
             intent.putExtra("is_self_lock", true)
             startActivity(intent)
+            finish()
+            return
         }
 
         setContentView(R.layout.activity_main)
