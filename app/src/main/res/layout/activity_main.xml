@@ -86,6 +86,24 @@
             android:textColor="@color/text_main" />
 
         <Button
+            android:id="@+id/btnAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/perm_admin"
+            app:backgroundTint="@color/surface"
+            android:textColor="@color/text_main" />
+
+        <Button
+            android:id="@+id/btnAccessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/perm_accessibility"
+            app:backgroundTint="@color/surface"
+            android:textColor="@color/text_main" />
+
+        <Button
             android:id="@+id/btnSetPin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
