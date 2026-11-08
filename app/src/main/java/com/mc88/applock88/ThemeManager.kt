@@ -13,21 +13,21 @@ object ThemeManager {
     fun applyTheme(activity: Activity) {
         val prefs = activity.getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
         val themeIndex = prefs.getInt("theme_index", 0)
-        val root = activity.window.decorView.findViewById<android.view.View>(android.R.id.content)
+        val rootView = activity.window.decorView
 
         val colors = getThemeColors(themeIndex)
         
-        activity.window.decorView.setBackgroundColor(colors[0])
+        rootView.setBackgroundColor(colors[0])
         activity.window.statusBarColor = colors[0]
         activity.window.navigationBarColor = colors[0]
 
-        root?.let {
-            val bgLayout = it.findViewById<android.view.View>(R.id.tvPinDisplay)?.rootView as? android.widget.LinearLayout
-            bgLayout?.setBackgroundColor(colors[0])
-        }
+        val contentView = activity.findViewById<android.view.View>(android.R.id.content)
+        
+        val bgLayout = contentView.findViewById<android.view.View>(R.id.tvPinDisplay)?.rootView as? android.widget.LinearLayout
+        bgLayout?.setBackgroundColor(colors[0])
 
-        applyTextColors(it, colors[3], colors[4])
-        applyButtonColors(it, colors[1], colors[2])
+        applyTextColors(contentView, colors[3], colors[4])
+        applyButtonColors(contentView, colors[1], colors[2])
     }
 
     private fun applyTextColors(view: android.view.View?, main: Int, sub: Int) {
