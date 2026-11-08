@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/btn_accessibility"
+            android:text="@string/perm_usage"
             app:backgroundTint="@color/surface"
             android:textColor="@color/text_main" />
 
