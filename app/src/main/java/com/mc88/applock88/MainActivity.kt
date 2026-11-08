@@ -1,14 +1,13 @@
 package com.mc88.applock88
 
 import android.app.AppOpsManager
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.HapticFeedbackConstants
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -26,24 +25,36 @@ class MainActivity : AppCompatActivity() {
 
         tvStatus = findViewById(R.id.tvStatus)
 
-        findViewById<Button>(R.id.btnUsage).setOnClickListener {
+        val btnUsage = findViewById<Button>(R.id.btnUsage)
+        val btnOverlay = findViewById<Button>(R.id.btnOverlay)
+        val btnSetPin = findViewById<Button>(R.id.btnSetPin)
+        val btnSelectApps = findViewById<Button>(R.id.btnSelectApps)
+        val btnStart = findViewById<Button>(R.id.btnStart)
+        val btnStop = findViewById<Button>(R.id.btnStop)
+
+        btnUsage.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
 
-        findViewById<Button>(R.id.btnOverlay).setOnClickListener {
+        btnOverlay.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivity(intent)
         }
 
-        findViewById<Button>(R.id.btnSetPin).setOnClickListener {
+        btnSetPin.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             showSetPinDialog()
         }
 
-        findViewById<Button>(R.id.btnSelectApps).setOnClickListener {
+        btnSelectApps.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             startActivity(Intent(this, AppListActivity::class.java))
         }
 
-        findViewById<Button>(R.id.btnStart).setOnClickListener {
+        btnStart.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             if (!hasUsagePermission() || !Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Please grant all permissions first", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
@@ -57,7 +68,8 @@ class MainActivity : AppCompatActivity() {
             tvStatus.text = getString(R.string.status_running)
         }
 
-        findViewById<Button>(R.id.btnStop).setOnClickListener {
+        btnStop.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             stopService(Intent(this, LockService::class.java))
             tvStatus.text = getString(R.string.status_stopped)
         }
@@ -70,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         input.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
         builder.setView(input)
         builder.setPositiveButton("Save") { _, _ ->
-            val pin = input.text.toString()
+            val pin = input.text.toString().trim()
             if (pin.length >= 4) {
                 getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE).edit().putString("pin", pin).apply()
                 Toast.makeText(this, "PIN Saved", Toast.LENGTH_SHORT).show()
