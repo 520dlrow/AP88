@@ -50,13 +50,16 @@ class LockService : Service() {
             while (true) {
                 val lockedApps = prefs.getStringSet("locked_apps", emptySet()) ?: emptySet()
                 val currentApp = getForegroundApp(usageStatsManager)
+                
+                val unlockedApp = prefs.getString("unlocked_app", null)
+                val unlockTime = prefs.getLong("unlock_time", 0)
+                val isRecentlyUnlocked = (currentApp == unlockedApp && System.currentTimeMillis() - unlockTime < 3000)
 
-                if (currentApp != null && currentApp != lastApp && lockedApps.contains(currentApp)) {
-                    if (currentApp != packageName) {
-                        val intent = Intent(this@LockService, LockActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        startActivity(intent)
-                    }
+                if (currentApp != null && currentApp != lastApp && lockedApps.contains(currentApp) && currentApp != packageName && !isRecentlyUnlocked) {
+                    val intent = Intent(this@LockService, LockActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    intent.putExtra("locked_package", currentApp)
+                    startActivity(intent)
                 }
                 lastApp = currentApp ?: ""
                 delay(500)
