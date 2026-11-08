@@ -5,50 +5,61 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="32dp"
+    android:padding="24dp"
     android:background="#E60B132B">
 
     <TextView
+        android:id="@+id/tvLockTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="App Locked"
         android:textColor="@color/text_main"
-        android:textSize="24sp"
+        android:textSize="28sp"
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/tvPinDisplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/enter_pin"
-        android:textColor="@color/text_sub" />
+        android:layout_marginTop="16dp"
+        android:text=""
+        android:textColor="@color/primary"
+        android:textSize="36sp"
+        android:letterSpacing="0.5"
+        android:textStyle="bold" />
 
-    <EditText
-        android:id="@+id/etPin"
+    <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:inputType="numberPassword"
-        android:textColor="@color/text_main"
-        android:textSize="24sp"
-        android:gravity="center"
-        android:backgroundTint="@color/primary" />
+        android:layout_marginTop="32dp"
+        android:columnCount="3"
+        android:rowCount="4"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="true">
 
-    <Button
-        android:id="@+id/btnUnlock"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Unlock"
-        app:backgroundTint="@color/primary"
-        android:textColor="@color/bg_dark" />
+        <Button android:id="@+id/btn1" android:text="1" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn2" android:text="2" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn3" android:text="3" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        
+        <Button android:id="@+id/btn4" android:text="4" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn5" android:text="5" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn6" android:text="6" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        
+        <Button android:id="@+id/btn7" android:text="7" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn8" android:text="8" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btn9" android:text="9" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        
+        <Button android:id="@+id/btnClear" android:text="C" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_sub"/>
+        <Button android:id="@+id/btn0" android:text="0" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/surface" android:textColor="@color/text_main"/>
+        <Button android:id="@+id/btnEnter" android:text="✓" android:textSize="24sp" android:layout_columnWeight="1" android:layout_margin="4dp" app:backgroundTint="@color/primary" android:textColor="@color/bg_dark"/>
+    </GridLayout>
 
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="X Close"
+        android:layout_marginTop="24dp"
+        android:text="X Close App"
         app:backgroundTint="@color/surface"
         android:textColor="@color/text_main" />
 </LinearLayout>
