@@ -1,0 +1,83 @@
+package com.mc88.applock88
+
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class AppListActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val recyclerView = RecyclerView(this)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.setBackgroundColor(getColor(R.color.bg_dark))
+        setContentView(recyclerView)
+
+        val pm = packageManager
+        val intent = Intent(Intent.ACTION_MAIN, null)
+        intent.addCategory(Intent.CATEGORY_LAUNCHER)
+        val apps = pm.queryIntentActivities(intent, 0)
+            .filter { it.activityInfo.packageName != packageName }
+            .distinctBy { it.activityInfo.packageName }
+            .sortedBy { it.loadLabel(pm).toString() }
+
+        recyclerView.adapter = AppAdapter(apps, pm)
+    }
+
+    inner class AppAdapter(private val apps: List<android.content.pm.ResolveInfo>, private val pm: PackageManager) :
+        RecyclerView.Adapter<AppAdapter.ViewHolder>() {
+
+        private val prefs = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
+        private val lockedApps = prefs.getStringSet("locked_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        private val hiddenApps = prefs.getStringSet("hidden_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+
+        inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            val icon: ImageView = v.findViewById(R.id.imgIcon)
+            val name: TextView = v.findViewById(R.id.tvName)
+            val checkLock: CheckBox = v.findViewById(R.id.checkLock)
+            val checkHide: CheckBox = v.findViewById(R.id.checkHide)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_app, parent, false)
+            return ViewHolder(v)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val app = apps[position]
+            val pkg = app.activityInfo.packageName
+            holder.name.text = app.loadLabel(pm)
+            holder.icon.setImageDrawable(app.loadIcon(pm))
+            holder.name.setTextColor(getColor(R.color.text_main))
+
+            holder.checkLock.setOnCheckedChangeListener(null)
+            holder.checkHide.setOnCheckedChangeListener(null)
+
+            holder.checkLock.isChecked = lockedApps.contains(pkg)
+            holder.checkHide.isChecked = hiddenApps.contains(pkg)
+
+            holder.checkLock.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) lockedApps.add(pkg) else lockedApps.remove(pkg)
+                prefs.edit().putStringSet("locked_apps", lockedApps).apply()
+            }
+
+            holder.checkHide.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) hiddenApps.add(pkg) else hiddenApps.remove(pkg)
+                prefs.edit().putStringSet("hidden_apps", hiddenApps).apply()
+            }
+        }
+
+        override fun getItemCount() = apps.size
+    }
+}
