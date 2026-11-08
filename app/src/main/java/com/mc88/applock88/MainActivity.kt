@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.btn_set_pin))
         val input = EditText(this)
-        input.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_VISIBLE_PASSWORD
+        input.inputType = android.text.InputType.TYPE_CLASS_NUMBER
         input.hint = "Enter new PIN (4+ digits)"
         builder.setView(input)
         builder.setPositiveButton("Save") { _, _ ->
