@@ -12,5 +12,6 @@
     <string name="perm_overlay">Grant Overlay Access</string>
     <string name="enter_pin">Enter PIN</string>
     <string name="wrong_pin">Wrong PIN</string>
+    <string name="accessibility_desc">AppLock88 needs this permission to detect when you open a locked app and protect it.</string>
     <string name="copyright">© MC88</string>
 </resources>
