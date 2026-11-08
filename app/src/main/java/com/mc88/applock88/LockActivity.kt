@@ -10,11 +10,16 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 
 class LockActivity : AppCompatActivity() {
 
     private var enteredPin = ""
     private var isSelfLock = false
+    private lateinit var lockedPkg: String
+    private lateinit var tvDisplay: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,14 +56,40 @@ class LockActivity : AppCompatActivity() {
         ThemeManager.applyTheme(this)
 
         isSelfLock = intent.getBooleanExtra("is_self_lock", false)
-        val lockedPkg = intent.getStringExtra("locked_package") ?: ""
-        val tvDisplay = findViewById<TextView>(R.id.tvPinDisplay)
+        lockedPkg = intent.getStringExtra("locked_package") ?: ""
+        tvDisplay = findViewById(R.id.tvPinDisplay)
         val tvTitle = findViewById<TextView>(R.id.tvLockTitle)
 
         if (isSelfLock) {
             tvTitle.text = "AppLock88 is Protected"
         }
 
+        setupBiometrics()
+        setupPinPad()
+    }
+
+    private fun setupBiometrics() {
+        val biometricManager = BiometricManager.from(this)
+        if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS) {
+            val executor = ContextCompat.getMainExecutor(this)
+            val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    unlockSuccessfully()
+                }
+            })
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_title))
+                .setSubtitle(getString(R.string.biometric_subtitle))
+                .setNegativeButtonText("Use PIN")
+                .build()
+
+            biometricPrompt.authenticate(promptInfo)
+        }
+    }
+
+    private fun setupPinPad() {
         val buttons = mapOf(
             R.id.btn0 to "0", R.id.btn1 to "1", R.id.btn2 to "2", R.id.btn3 to "3",
             R.id.btn4 to "4", R.id.btn5 to "5", R.id.btn6 to "6", R.id.btn7 to "7",
@@ -86,14 +117,7 @@ class LockActivity : AppCompatActivity() {
             val savedPin = getSharedPreferences("AppLockPrefs", MODE_PRIVATE).getString("pin", "")?.trim()
 
             if (enteredPin.isNotEmpty() && enteredPin == savedPin) {
-                if (!isSelfLock) {
-                    getSharedPreferences("AppLockPrefs", MODE_PRIVATE).edit()
-                        .putString("unlocked_app", lockedPkg)
-                        .putLong("unlock_time", System.currentTimeMillis())
-                        .apply()
-                }
-                setResult(RESULT_OK)
-                finish()
+                unlockSuccessfully()
             } else {
                 Toast.makeText(this, "Wrong PIN", Toast.LENGTH_SHORT).show()
                 enteredPin = ""
@@ -114,6 +138,17 @@ class LockActivity : AppCompatActivity() {
                 finishAffinity()
             }
         }
+    }
+
+    private fun unlockSuccessfully() {
+        if (!isSelfLock) {
+            getSharedPreferences("AppLockPrefs", MODE_PRIVATE).edit()
+                .putString("unlocked_app", lockedPkg)
+                .putLong("unlock_time", System.currentTimeMillis())
+                .apply()
+        }
+        setResult(RESULT_OK)
+        finish()
     }
 
     override fun onBackPressed() { }
