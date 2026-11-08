@@ -22,6 +22,8 @@ class AppListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_app_list)
 
+        ThemeManager.applyTheme(this)
+
         findViewById<Button>(R.id.btnBack).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             finish()
@@ -46,13 +48,11 @@ class AppListActivity : AppCompatActivity() {
 
         private val prefs = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
         private val lockedApps = prefs.getStringSet("locked_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-        private val hiddenApps = prefs.getStringSet("hidden_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
 
         inner class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
             val icon: ImageView = v.findViewById(R.id.imgIcon)
             val name: TextView = v.findViewById(R.id.tvName)
             val checkLock: CheckBox = v.findViewById(R.id.checkLock)
-            val checkHide: CheckBox = v.findViewById(R.id.checkHide)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -65,24 +65,14 @@ class AppListActivity : AppCompatActivity() {
             val pkg = app.activityInfo.packageName
             holder.name.text = app.loadLabel(pm)
             holder.icon.setImageDrawable(app.loadIcon(pm))
-            holder.name.setTextColor(getColor(R.color.text_main))
 
             holder.checkLock.setOnCheckedChangeListener(null)
-            holder.checkHide.setOnCheckedChangeListener(null)
-
             holder.checkLock.isChecked = lockedApps.contains(pkg)
-            holder.checkHide.isChecked = hiddenApps.contains(pkg)
 
             holder.checkLock.setOnCheckedChangeListener { _, isChecked ->
                 holder.checkLock.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 if (isChecked) lockedApps.add(pkg) else lockedApps.remove(pkg)
                 prefs.edit().putStringSet("locked_apps", lockedApps).apply()
-            }
-
-            holder.checkHide.setOnCheckedChangeListener { _, isChecked ->
-                holder.checkHide.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                if (isChecked) hiddenApps.add(pkg) else hiddenApps.remove(pkg)
-                prefs.edit().putStringSet("hidden_apps", hiddenApps).apply()
             }
         }
 
