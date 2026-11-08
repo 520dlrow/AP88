@@ -19,7 +19,7 @@ class LockActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -29,10 +29,10 @@ class LockActivity : AppCompatActivity() {
         }
         
         window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
         )
-
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
         } else {
@@ -48,7 +48,6 @@ class LockActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_lock)
-        
         ThemeManager.applyTheme(this)
 
         isSelfLock = intent.getBooleanExtra("is_self_lock", false)
@@ -87,15 +86,14 @@ class LockActivity : AppCompatActivity() {
             val savedPin = getSharedPreferences("AppLockPrefs", MODE_PRIVATE).getString("pin", "")?.trim()
 
             if (enteredPin.isNotEmpty() && enteredPin == savedPin) {
-                if (isSelfLock) {
-                    finish()
-                } else {
+                if (!isSelfLock) {
                     getSharedPreferences("AppLockPrefs", MODE_PRIVATE).edit()
                         .putString("unlocked_app", lockedPkg)
                         .putLong("unlock_time", System.currentTimeMillis())
                         .apply()
-                    finish()
                 }
+                setResult(RESULT_OK)
+                finish()
             } else {
                 Toast.makeText(this, "Wrong PIN", Toast.LENGTH_SHORT).show()
                 enteredPin = ""
@@ -105,11 +103,16 @@ class LockActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnClose).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            val startMain = Intent(Intent.ACTION_MAIN)
-            startMain.addCategory(Intent.CATEGORY_HOME)
-            startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(startMain)
-            finishAffinity()
+            setResult(RESULT_CANCELED)
+            if (isSelfLock) {
+                finishAffinity()
+            } else {
+                val startMain = Intent(Intent.ACTION_MAIN)
+                startMain.addCategory(Intent.CATEGORY_HOME)
+                startMain.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(startMain)
+                finishAffinity()
+            }
         }
     }
 
