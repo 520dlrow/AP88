@@ -3,11 +3,12 @@ package com.mc88.applock88
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
@@ -19,10 +20,15 @@ class AppListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val recyclerView = RecyclerView(this)
+        setContentView(R.layout.activity_app_list)
+
+        findViewById<Button>(R.id.btnBack).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            finish()
+        }
+
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.setBackgroundColor(getColor(R.color.bg_dark))
-        setContentView(recyclerView)
 
         val pm = packageManager
         val intent = Intent(Intent.ACTION_MAIN, null)
@@ -68,11 +74,13 @@ class AppListActivity : AppCompatActivity() {
             holder.checkHide.isChecked = hiddenApps.contains(pkg)
 
             holder.checkLock.setOnCheckedChangeListener { _, isChecked ->
+                holder.checkLock.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 if (isChecked) lockedApps.add(pkg) else lockedApps.remove(pkg)
                 prefs.edit().putStringSet("locked_apps", lockedApps).apply()
             }
 
             holder.checkHide.setOnCheckedChangeListener { _, isChecked ->
+                holder.checkHide.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 if (isChecked) hiddenApps.add(pkg) else hiddenApps.remove(pkg)
                 prefs.edit().putStringSet("hidden_apps", hiddenApps).apply()
             }
