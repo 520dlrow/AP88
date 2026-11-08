@@ -20,18 +20,9 @@
         android:textSize="16sp" />
 
     <CheckBox
-        android:id="@+id/checkHide"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hide_app"
-        android:textColor="@color/text_sub"
-        android:buttonTint="@color/primary" />
-
-    <CheckBox
         android:id="@+id/checkLock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lock"
-        android:textColor="@color/text_sub"
         android:buttonTint="@color/primary" />
 </LinearLayout>
