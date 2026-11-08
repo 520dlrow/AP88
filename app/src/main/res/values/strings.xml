@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">AppLock88</string>
+    <string name="title">AppLock88</string>
+    <string name="subtitle">Secure your apps</string>
+    <string name="btn_set_pin">Set PIN</string>
+    <string name="btn_select_apps">Select Apps</string>
+    <string name="btn_start">Start Protection</string>
+    <string name="btn_stop">Stop Protection</string>
+    <string name="status_running">Protection Active</string>
+    <string name="status_stopped">Protection Inactive</string>
+    <string name="perm_usage">Grant Usage Access</string>
+    <string name="perm_overlay">Grant Overlay Access</string>
+    <string name="enter_pin">Enter PIN</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="hide_app">Hide App</string>
+    <string name="unhide_app">Show App</string>
+    <string name="copyright">© MC88</string>
+</resources>
