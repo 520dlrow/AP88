@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         spinnerTimeout = findViewById(R.id.spinnerTimeout)
 
         updatePinDisplay()
+        updateStatusUI()
 
         val themeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, ThemeManager.themes)
         spinnerTheme.adapter = themeAdapter
@@ -105,14 +106,25 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please grant all permissions first", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
+            prefs.edit().putBoolean("is_protection_active", true).apply()
             val intent = Intent(this, LockService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
-            tvStatus.text = "Protection Active"
+            updateStatusUI()
         }
 
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            prefs.edit().putBoolean("is_protection_active", false).apply()
             stopService(Intent(this, LockService::class.java))
+            updateStatusUI()
+        }
+    }
+
+    private fun updateStatusUI() {
+        val isActive = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE).getBoolean("is_protection_active", false)
+        if (isActive) {
+            tvStatus.text = "Protection Active"
+        } else {
             tvStatus.text = "Protection Inactive"
         }
     }
