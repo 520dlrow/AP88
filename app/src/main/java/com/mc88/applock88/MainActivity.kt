@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
@@ -19,23 +20,30 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvCurrentPin: TextView
     private lateinit var spinnerTheme: Spinner
     private lateinit var spinnerTimeout: Spinner
+    private var isUnlocked = false
+
+    private val lockLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            isUnlocked = true
+        } else {
+            finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        setContentView(R.layout.activity_main)
+        ThemeManager.applyTheme(this)
 
         val prefs = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
         val savedPin = prefs.getString("pin", "")
         
-        if (!savedPin.isNullOrEmpty() && !intent.hasExtra("skip_lock")) {
+        if (!savedPin.isNullOrEmpty() && !isUnlocked) {
             val intent = Intent(this, LockActivity::class.java)
             intent.putExtra("is_self_lock", true)
-            startActivity(intent)
-            finish()
-            return
+            lockLauncher.launch(intent)
         }
-
-        setContentView(R.layout.activity_main)
-        ThemeManager.applyTheme(this)
 
         tvStatus = findViewById(R.id.tvStatus)
         tvCurrentPin = findViewById(R.id.tvCurrentPin)
