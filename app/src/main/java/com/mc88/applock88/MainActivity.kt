@@ -1,6 +1,8 @@
 package com.mc88.applock88
 
 import android.app.AppOpsManager
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -90,6 +92,27 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        findViewById<Button>(R.id.btnAdmin).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val componentName = ComponentName(this, AdminReceiver::class.java)
+            if (!dpm.isAdminActive(componentName)) {
+                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
+                intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Enable to prevent AppLock88 from being uninstalled.")
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Anti-Uninstall Already Active", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<Button>(R.id.btnAccessibility).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            prefs.edit().putBoolean("use_accessibility", true).apply()
+            Toast.makeText(this, "Enable AppLock88 in Accessibility", Toast.LENGTH_LONG).show()
+        }
+
         findViewById<Button>(R.id.btnSetPin).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             showSetPinDialog()
@@ -103,27 +126,33 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnStart).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             if (!hasUsagePermission() || !Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "Please grant all permissions first", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Please grant Usage & Overlay permissions first", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             prefs.edit().putBoolean("is_protection_active", true).apply()
-            val intent = Intent(this, LockService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+            
+            if (!prefs.getBoolean("use_accessibility", false)) {
+                val intent = Intent(this, LockService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+            }
             updateStatusUI()
         }
 
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            prefs.edit().putBoolean("is_protection_active", false).apply()
+            prefs.edit().putBoolean("is_protection_active", false).putBoolean("use_accessibility", false).apply()
             stopService(Intent(this, LockService::class.java))
             updateStatusUI()
         }
     }
 
     private fun updateStatusUI() {
-        val isActive = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE).getBoolean("is_protection_active", false)
+        val prefs = getSharedPreferences("AppLockPrefs", Context.MODE_PRIVATE)
+        val isActive = prefs.getBoolean("is_protection_active", false)
+        val isAdvanced = prefs.getBoolean("use_accessibility", false)
+        
         if (isActive) {
-            tvStatus.text = "Protection Active"
+            tvStatus.text = if (isAdvanced) "Protection Active (Advanced)" else "Protection Active (Normal)"
         } else {
             tvStatus.text = "Protection Inactive"
         }
