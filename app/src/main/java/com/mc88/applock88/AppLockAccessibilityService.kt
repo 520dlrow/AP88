@@ -6,6 +6,8 @@ import android.view.accessibility.AccessibilityEvent
 
 class AppLockAccessibilityService : AccessibilityService() {
 
+    private var lastForegroundPackage = ""
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
 
@@ -14,6 +16,10 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         val packageName = event.packageName?.toString() ?: return
         if (packageName == this.packageName || packageName == "com.android.systemui" || packageName == "android") return
+
+        if (packageName == lastForegroundPackage) return
+
+        lastForegroundPackage = packageName
 
         val lockedApps = prefs.getStringSet("locked_apps", emptySet()) ?: emptySet()
 
